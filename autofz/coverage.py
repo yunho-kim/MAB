@@ -114,7 +114,7 @@ def get_unique_bugs_fuzzer(target, fuzzer, output_dir):
         "unique_bugs_trace3": 0
     }
 
-
+    # return : target info and 
 def gen_evaluator_args(target,
                        fuzzers,
                        output_dir,
@@ -123,18 +123,18 @@ def gen_evaluator_args(target,
                        empty_seed=False,
                        crash_mode='ip',
                        input_only=False):
-
-    target_config = config['target'][target]
-    evaluator_config: Dict[str, str] = config['evaluator']
+    target_config = config['target'][target]  # target info(group, seed, code_dir, input_model, dict, args, unsupported)
+    evaluator_config: Dict[str, str] = config['evaluator'] # binary_root and binary_crash_root 
 
     assert target_config
 
-    group: str = target_config['group']
-    target_default_args: str = target_config['args']['default']
-    target_args = target_config['args'].get('evaluator', target_default_args)
+    group: str = target_config['group'] # group info
+    target_default_args: str = target_config['args']['default'] # target - args - default (ex. @@)
+    target_args = target_config['args'].get('evaluator', target_default_args)# target_args : @@
 
     assert target_args is not None
-
+    
+    # set seed directory
     seed = None
     if input_dir:
         seed = input_dir
@@ -145,6 +145,7 @@ def gen_evaluator_args(target,
 
     assert seed
 
+    #set binary root 
     binary = os.path.join(evaluator_config['binary_root'], group, target,
                           target)
     binary_crash = os.path.join(evaluator_config['binary_crash_root'], group,
@@ -153,6 +154,7 @@ def gen_evaluator_args(target,
     assert os.path.exists(seed)
     assert os.path.exists(binary)
     assert os.path.exists(binary_crash)
+    
 
     evaluator_args = [
         '-o', output_dir, '-t', target, '-f', *fuzzers, '-q', 'queue', '-c',
@@ -200,6 +202,7 @@ def thread_run_fuzzer(target,
     thread_run_evaluator(target, fuzzers, output_dir, timeout, input_dir,
                          empty_seed, crash_mode, input_only)
     bitmap = get_bitmap_fuzzer(target, fuzzer, output_dir)
+    logger.info(f'fuzzer : { fuzzer }, bitmap : {bitmap}')
     unique_bugs = get_unique_bugs_fuzzer(target, fuzzer, output_dir)
     # print('fuzzer', fuzzer, 'coverage', coverage)
     if bitmap:
@@ -234,6 +237,7 @@ def thread_run_global(target,
                                fuzzer_timeout, timeout, input_dir, empty_seed,
                                crash_mode, input_only)
     cov = get_coverage_global(output_dir)
+    result['test'] = cov
     if not result:
         logger.critical(f'global bitmap is None')
         return None

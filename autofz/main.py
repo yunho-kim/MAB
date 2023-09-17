@@ -35,6 +35,7 @@ from .common import IS_DEBUG, IS_PROFILE, nested_dict
 from .datatype import Bitmap
 from .mytype import BitmapContribution, Coverage, Fuzzer, Fuzzers
 from .singleton import SingletonABCMeta
+from . import thompson 
 
 config: Dict = Config.CONFIG
 
@@ -1367,8 +1368,14 @@ def main():
     global START_TIME
     global RUNNING
     global PARALLEL
+
+    logger.info('hyeonminmo')
+
     random.seed()
     ARGS = cli.ArgsParser().parse_args()
+
+    logger.info(f'ARGS : {ARGS}')
+
     TARGET = ARGS.target
     unsuppored_fuzzers = config['target'][TARGET].get('unsupported', [])
     logger.debug(f'autofz args is {ARGS}')
@@ -1379,6 +1386,7 @@ def main():
     ]
     FUZZERS = available_fuzzers if 'all' in ARGS.fuzzer else ARGS.fuzzer
     logger.debug(f'FUZZERS: {FUZZERS}')
+
     # make things easier
     if ARGS.focus_one:
         FUZZERS = [ARGS.focus_one]
@@ -1417,7 +1425,7 @@ def main():
     timeout = ARGS.timeout
     PARALLEL = ARGS.parallel
 
-    coverage.thread_run_global(TARGET,
+    result = coverage.thread_run_global(TARGET,
                                FUZZERS,
                                OUTPUT,
                                ARGS.timeout,
@@ -1426,11 +1434,24 @@ def main():
                                empty_seed=ARGS.empty_seed,
                                crash_mode=ARGS.crash_mode,
                                input_only=False)
+
+    logger.info(f'init result : {result}')
+
     # wait for seed evaluated
     START_TIME = time.time()
 
     # setup cgroup
     init_cgroup()
+    tsFuzzers = {}
+
+    logger.info(f'FUZZERS: { FUZZERS }')
+    # init fuzzer - success count and fail count
+    for fuzzer in FUZZERS:
+        tsFuzzers[fuzzer] = thompson.fuzzer()
+        logger.info(f'fuzzer : { fuzzer }. fuzzer_success : { tsFuzzers[fuzzer].S }, fuzzer_fail : { tsFuzzers[fuzzer].F } )')
+
+
+
 
     # setup fuzzers
     for fuzzer in FUZZERS:
