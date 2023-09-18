@@ -12,6 +12,7 @@ from .libfuzzer import LIBFUZZERController
 from .qsym import QSYMController
 
 
+
 def str_to_class(classname):
     return getattr(sys.modules[__name__], classname, None)
 
@@ -69,6 +70,7 @@ def main(fuzzer,
                                   argument=argument,
                                   thread=thread,
                                   cgroup_path=cgroup_path)
+
     controller.init()
     command = command
 

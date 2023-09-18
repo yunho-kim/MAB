@@ -202,7 +202,7 @@ def thread_run_fuzzer(target,
     thread_run_evaluator(target, fuzzers, output_dir, timeout, input_dir,
                          empty_seed, crash_mode, input_only)
     bitmap = get_bitmap_fuzzer(target, fuzzer, output_dir)
-    logger.info(f'fuzzer : { fuzzer }, bitmap : {bitmap}')
+    # logger.info(f'fuzzer : { fuzzer }, bitmap : {bitmap} thread_evaluator:  {EVALUTOR_THREAD}')
     unique_bugs = get_unique_bugs_fuzzer(target, fuzzer, output_dir)
     # print('fuzzer', fuzzer, 'coverage', coverage)
     if bitmap:
@@ -233,10 +233,12 @@ def thread_run_global(target,
                       empty_seed=False,
                       crash_mode='trace',
                       input_only=False):
+    # logger.info(f'thread_run_global')
     result = thread_run_fuzzer(target, 'global', fuzzers, output_dir,
                                fuzzer_timeout, timeout, input_dir, empty_seed,
                                crash_mode, input_only)
     cov = get_coverage_global(output_dir)
+    # logger.info(f'cov: {cov}')
     result['test'] = cov
     if not result:
         logger.critical(f'global bitmap is None')
