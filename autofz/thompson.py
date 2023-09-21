@@ -9,26 +9,28 @@ class fuzzer():
         self.F = 1 # fail count
         self.prob = 0.0
 
-    def selectFuccer(fuzzers):
-        logger.info('Select fuzzer')
+def selectFuzzer(fuzzers):
+    logger.info('Select fuzzer')
+    selectedFuzzers =[]
+    for value in fuzzers.values():
+        value.prob = np.random.beta(value.S, value.F, size = 1)
+        logger.info(f'Success: { value.S }, Fail : {value.F}, Prob: { value.prob }')
+    max_prob_fuzzer = max(fuzzers, key=lambda key: fuzzers[key].prob)
+    logger.info(f'max_prob_fuzzer: { max_prob_fuzzer }')
+    selectedFuzzers.append(max_prob_fuzzer)
+    logger.info(f'selected Fuzzers: {selectedFuzzers}')
 
-        for value in options.vaules():
-            value.prob = np.random.beta(value.S, value.F, size = 1)
-            logger.info(f'Success: { value.S }, Fail : {value.F}, Prob: { value.prob }')
+    return selectedFuzzers
 
-        max_prob_fuzzer = max(fuzzers, key=lambda key: fuzzers[key].prob)
-
-        logger.info(f'selected fuzzer: { max_prob_fuzzer }')
-
-        return max_prob_fuzzer
-
-    def updateFuzzerCount(fuzzer, criteria):
+def updateFuzzerCount(tsfuzzer, selected_fuzzers, criteria):
+    for selected_fuzzer in selected_fuzzers:
+        fuzzer = tsfuzzer[selected_fuzzer]
         if criteria == 1:
             fuzzer.S = fuzzer.S + 1
-            logging.debug('Update fuzzer function - success')
+            logger.info('Update fuzzer function - success')
         else:
             fuzzer.F = fuzzer.F +1
-            logging.debug('Update fuzzer function - fail')
+            logger.info('Update fuzzer function - fail')
 
 
     
