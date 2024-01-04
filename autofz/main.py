@@ -766,6 +766,10 @@ class Schedule_Base(SchedulingAlgorithm):
     def prep_round_robin(self) -> bool:
         prep_time = self.prep_time
         remain_time = prep_time
+        diff_threshold = self.diff_threshold / 10
+
+        prep_round = 1
+
         while remain_time > 0:
             '''
             run 30 seconds for each fuzzer and see whether there is a winner
@@ -779,10 +783,32 @@ class Schedule_Base(SchedulingAlgorithm):
             '''
             detect whether there is a winner
             '''
-            self.has_winner_round = self.has_winner()
+            current_fuzzer_info = get_fuzzer_info(self.fuzzers)
+            global_bitmap = current_fuzzer_info['global_bitmap'].count()
+            logger.info(f'prep round global bitmap : {global_bitmap}')
+
+            if prep_round == 1:
+                bitmap_diff =fuzzer_bitmap_diff(self.fuzzers, self.before_prep_fuzzer_info,current_fuzzer_info)
+            else:
+                bitmap_diff = fuzzer_bitmap_diff(self.fuzzers, previous_fuzzer_info, current_fuzzer_info)
+
+            for fuzzer in self.fuzzers:
+                logger.info(f'fuzzer : {fuzzer}, fuzzer_bitmap_diff : {bitmap_diff[fuzzer].count()}, diff_threshold : {diff_threshold}')
+                if bitmap_diff[fuzzer].count() > diff_threshold:
+                    thompson.updateFuzzerCountPrep(self.tsFuzzers, fuzzer, 1)
+                else:
+                    thompson.updateFuzzerCountPrep(self.tsFuzzers, fuzzer, 0)
+
+            for fuzzer in FUZZERS:
+                logger.info(f'prep_round : {prep_round} result - fuzzer : { fuzzer }, fuzzer_success : { self.tsFuzzers[fuzzer].S }, fuzzer_fail : { self.tsFuzzers[fuzzer].F }')
+            previous_fuzzer_info = current_fuzzer_info
+            prep_round+=1
+
+
+#            self.has_winner_round = self.has_winner()
             # NOTE: early exit!
-            if self.has_winner_round:
-                return True
+#            if self.has_winner_round:
+#                return True
         return False
 
     def prep_parallel(self) -> bool:
@@ -1199,10 +1225,20 @@ class Schedule_Autofz(Schedule_Base):
 
         # preparation phase - 3 step
         # check early exit condition
-        #if PARALLEL:
-        #    has_winner = self.prep_parallel()
-        #else:
-        #    has_winner = self.prep_round_robin()
+        if self.round_num == 1:
+            if PARALLEL:
+                has_winner = self.prep_parallel()
+            else:
+                has_winner = self.prep_round_robin()
+
+            preparation_bitmap = fuzzer_info['global_bitmap'].count
+            logger.info(f'pe reparation_bitmap: {preparation_bitmap}')
+
+            for fuzzer in FUZZERS:
+                logger.info(f'round {self.round_num} preparation  end result - fuzzer : { fuzzer }, fuzzer_success : { self.tsFuzzers[fuzzer].S }, fuzzer_fail : { self.tsFuzzers[fuzzer].F }, fuzzer run time_prep : {self.prep_time}')
+
+
+        
         selected_fuzzers = thompson.selectFuzzer(self.tsFuzzers)
         logger.info(f'selected_fuzzers: {selected_fuzzers}')
 
@@ -1266,7 +1302,7 @@ class Schedule_Autofz(Schedule_Base):
         # do_sync(self.fuzzers, OUTPUT)
 
         # reset focus time
-        self.dynamic_focus_time_round = self.prep_time - self.dynamic_prep_time_round + self.focus_time
+        self.dynamic_focus_time_round = self.focus_time
 
         logger.info(f'prep_time : {self.prep_time}, dynamic_prep_time_round: {self.dynamic_prep_time_round}, focus_time: {self.focus_time}, dynamic_focus_time_round: {self.dynamic_focus_time_round}')
 
@@ -1329,13 +1365,8 @@ class Schedule_Autofz(Schedule_Base):
         for fuzzer in FUZZERS:            
             logger.info(f'round {self.round_num} end result - fuzzer : { fuzzer }, fuzzer_success : { self.tsFuzzers[fuzzer].S }, fuzzer_fail : { self.tsFuzzers[fuzzer].F }, fuzzer run time " {self.tsFuzzers[fuzzer].total_runTime}')
 
-        assert (self.dynamic_prep_time_round +
-                self.dynamic_focus_time_round) == (self.prep_time +
-                                                   self.focus_time)
+        #assert (self.dynamic_prep_time_round + self.dynamic_focus_time_round) == (self.prep_time + self.focus_time)
         
-
-
-
         append_log(
             'round', {
                 'round_num':

@@ -55,24 +55,24 @@ class BitmapPolicy(Policy):
         for f, cov in sorted_bitmap:
             # NOTE: handle repetitive element
             ordered_fuzzers.append(f)
-            #val = cov
-            #if prev_coverage > val:
-            #    now_rank_num = 1
-            #    now_rank += 1
-            #elif prev_coverage == val:
-            #    now_rank_num += 1
+            val = cov
+            if prev_coverage > val:
+                now_rank_num = 1
+                now_rank += 1
+            elif prev_coverage == val:
+                now_rank_num += 1
 
-            if f in fuzzers:
-                rank[f] = 0
-                rank_num[0] = 1
-            else:
-                rank[f] = 1
-                now_rank_num+=1
-                rank_num[1] = now_rank_num
+            #if f in fuzzers:
+            #    rank[f] = 0
+            #    rank_num[0] = 1
+            #else:
+            #    rank[f] = 1
+            #    now_rank_num+=1
+            #    rank_num[1] = now_rank_num
 
-            #rank[f] = now_rank
-            #rank_num[now_rank] = now_rank_num
-            #prev_coverage = val
+            rank[f] = now_rank
+            rank_num[now_rank] = now_rank_num
+            prev_coverage = val
         return rank, rank_num, ordered_fuzzers
 
     def calculate_cpu(self, fuzzers, fuzzer_info, max_cores=1):
