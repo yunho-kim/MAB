@@ -1252,7 +1252,7 @@ class Schedule_Autofz(Schedule_Base):
         fuzzer_info = get_fuzzer_info(self.fuzzers)
         after_prep_fuzzer_info = fuzzer_info
         
-        if round == 1 :
+        if self.round_num == 1 :
             preparation_bitmap = after_prep_fuzzer_info['global_bitmap'].count()
             preparation_unique_bug = after_prep_fuzzer_info['global_unique_bugs']['unique_bugs']
             logger.info(f'main 045 - preparation_bitmap: {preparation_bitmap}, preparation_unique_bug : {preparation_unique_bug}')
@@ -1367,9 +1367,9 @@ class Schedule_Autofz(Schedule_Base):
         if round == 1 :
             logger.info(f'main 029 - round {self.round_num} end - preparation_bitmap: {preparation_bitmap}, current_bitmap: {current_bitmap}, preparation_unique_bug : { preparation_unique_bug}, current_unique_bug : { current_unique_bug},  diff_threshold: {self.diff_threshold}')
         else:
-            logger.info(f'main 029 - round {self.round_num} end - previous_bitmap: {previous_bitmap}, current_bitmap: {current_bitmap}, previous_unique_bug : { preparation_unique_bug}, current_unique_bug : {current_unique_bug}, diff_threshold: {self.diff_threshold}')
+            logger.info(f'main 029 - round {self.round_num} end - previous_bitmap: {previous_bitmap}, current_bitmap: {current_bitmap}, previous_unique_bug : { previous_unique_bug}, current_unique_bug : {current_unique_bug}, diff_threshold: {self.diff_threshold}')
 
-        if round == 1:
+        if self.round_num == 1:
             if current_bitmap - preparation_bitmap > self.diff_threshold or current_unique_bug - preparation_unique_bug > 0:
                 thompson.updateFuzzerCount(self.tsFuzzers, selected_fuzzers, 1)
                 self.diff_threshold += self.diff_threshold_base
